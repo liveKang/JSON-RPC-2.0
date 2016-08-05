@@ -69,76 +69,35 @@
 
 
 ### 前端接口封装
+	function postJsonRpc(method, params){
+			var deferred = $q.defer();
+            var parameters = {
+            	"jsonrpc" : "2.0",
+            	"method" : method,
+            	"params" : params,
+            	"id" : 1,
+            };
+            $http({
+                method:'POST',
+                url: serverUrl,      								//字符串，请求的目标
+                data: parameters,    								//在发送post请求时使用，作为消息体发送到服务器
+
+            }).success(function (data) {   							//请求成功
+                if (data.result || "null") {
+                	deferred.resolve(data);
+                }else {               								//返回数据失败
+                    deferred.reject(data);
+                }
+            }).error(function (data, status, headers, config) {     //请求失败
+                if(status == 400) {
+                    showMsg('请求参数错误！');
+                } else if(status == 405){
+                    showMsg('无效的请求！');
+                } else {
+                    showMsg('网络连接异常，请检查网络后重试！');
+                }
+            });
+            return deferred.promise;
+	    }
 	
-	.service('dataService', ['$http','$q','showMsgService',function ($http, $q, showMsgService) {
-	//	post方法
-			this.postJsonData = function (parameters) {
-	            var deferred = $q.defer();
-	            
-	            parameters = {
-	            	"jsonrpc" : "2.0",
-	            	 parameters
-	            };
-	
-	            $http({
-	                method:'POST',
-	                url: serverUrl,      //字符串，请求的目标
-	                data: parameters,    //在发送post请求时使用，作为消息体发送到服务器
-	                headers: {'Content-Type':'application/raw'},    //一个列表，每个元素都是一个函数，返回http头
-	                transformRequest: function (parameters) {       //数或者函数数组，用来对http请求的请求体和头信息进行转换，并返回转换后的结果。
-	                    var str = [];
-	                    for (var p in parameters)
-	                        str.push(encodeURIComponent(p) + "=" + encodeURIComponent(parameters[p]));
-	                    return str.join("&");
-	                }
-	
-	            }).success(function (data, status, headers, config) {
-	                if (data.result != 200) {
-	                    showMsgService.showMsg(data.msg);
-	                    deferred.reject(data);
-	                } else {
-	                    deferred.resolve(data);
-	                }
-	            }).error(function (data, status, headers, config) {
-	                if(status == 400) {
-	                    showMsgService.showMsg('请求参数错误！');
-	                } else if(status == 405){
-	                    showMsgService.showMsg('无效的请求！');
-	                } else {
-	                    showMsgService.showMsg('网络连接异常，请检查网络后重试！');
-	                }
-	            });
-	            return deferred.promise;
-	        }	
-	        
-	//	get方法
-	        this.getJsonData = function (url, parameters) {
-	            var deferred = $q.defer();
-	
-	            parameters = {
-	            	"jsonrpc" : "2.0",
-	            	 parameters
-	            };
-	
-	            $http.get(serverUrl, {params: parameters})
-	            .success(function (data, status, headers, config) {
-	                if (data.code != 200) {
-	                    showMsgService.showMsg(data.desc);
-	                    deferred.reject(data);
-	                } else {
-	                    deferred.resolve(data);
-	                }
-	            }).error(function (data, status, headers, config) {
-	                if(status == 400) {
-	                    showMsgService.showMsg('请求参数错误！');
-	                } else if(status == 405){
-	                    showMsgService.showMsg('无效的请求！');
-	                } else {
-	                    showMsgService.showMsg('网络连接异常，请检查网络后重试！');
-	                }
-	            });
-	            return deferred.promise;
-	        };
-	
-	    }])
 	
